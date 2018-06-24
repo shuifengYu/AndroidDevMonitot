@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/logmonitor_tv_d"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="D"/>
+
+        <TextView
+            android:id="@+id/logmonitor_tv_i"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="I"/>
+
+        <TextView
+            android:id="@+id/logmonitor_tv_w"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="W"/>
+
+        <TextView
+            android:id="@+id/logmonitor_tv_e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="E"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/logmonitor_lv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FF8877"></ListView>
+</LinearLayout>

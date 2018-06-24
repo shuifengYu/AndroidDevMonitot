@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:orientation="vertical">
+
+
+    <Button
+        android:id="@+id/monitor_btn_open"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="10dp"
+        android:background="@drawable/shape_circle"
+        android:text="M"
+        android:textColor="@color/white"/>
+
+    <include
+        android:id="@+id/monitor_openview"
+        layout="@layout/window_monitor_open"/>
+</FrameLayout>
