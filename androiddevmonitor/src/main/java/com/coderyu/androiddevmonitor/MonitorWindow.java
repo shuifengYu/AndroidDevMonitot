@@ -31,23 +31,32 @@ public class MonitorWindow {
         WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         Point point = new Point();
         windowManager.getDefaultDisplay().getSize(point);
-        windowManager.addView(rootView(mContext), params(point));
+        windowManager.addView(rootView(windowManager,mContext), params(point));
     }
 
     private static ViewGroup.LayoutParams params(Point point) {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         params.width = point.x;
-        params.height = point.y;
+        params.height = point.y-500;
+
         params.type = WindowManager.LayoutParams.TYPE_PHONE;
-        params.format = PixelFormat.TRANSPARENT;
-        params.gravity = Gravity.BOTTOM;
+        params.format = PixelFormat.TRANSLUCENT;
+        params.gravity = Gravity.TOP;
+
         return params;
     }
 
-    private static View rootView(Context context) {
-        View rootView = LayoutInflater.from(context).inflate(R.layout.window_monitor, null);
+    private static View rootView(final WindowManager windowManager, Context context) {
+        final View rootView = LayoutInflater.from(context).inflate(R.layout.window_monitor, null);
 
         final View btnOpen = rootView.findViewById(R.id.monitor_btn_open);
+        final View btnClose = rootView.findViewById(R.id.monitor_btn_close);
+         btnClose.setOnClickListener(new View.OnClickListener(){
+             @Override
+             public void onClick(View v) {
+                windowManager.removeView(rootView);
+             }
+         });
         View tvClose = rootView.findViewById(R.id.monitor_tv_close);
         final View openView = rootView.findViewById(R.id.monitor_openview);
 
@@ -65,12 +74,17 @@ public class MonitorWindow {
                         openView.setVisibility(View.VISIBLE);
                     }
                 } else if (action == MotionEvent.ACTION_MOVE) {
-                    float deltaX = event.getX() - lastX;
-                    float deltaY = event.getY() - lastY;
+                    int deltaX = (int) (event.getX() - lastX);
+                    int deltaY = (int) (event.getY() - lastY);
                     lastX = event.getX();
                     lastY = event.getY();
-                    v.setLeft((int) (v.getLeft() + deltaX));
-                    v.setTop((int) (v.getTop() + deltaY));
+//                    v.animate().translationXBy(deltaX);
+//                    v.animate().translationYBy(deltaY);
+//                    v.setTranslationX(v.getTranslationX()+deltaX);
+//                    v.setTranslationY(v.getTranslationY()+deltaY);
+                    v.layout(v.getLeft()+deltaX,v.getTop()+deltaY,v.getRight()+deltaX,v.getBottom()+deltaY);
+//                    v.setLeft((int) (v.getLeft() + deltaX));
+//                    v.setTop((int) (v.getTop() + deltaY));
                 }
                 return true;
             }

@@ -4,6 +4,11 @@
              android:layout_height="match_parent"
              android:orientation="vertical">
 
+    <Button
+        android:text="close"
+        android:id="@+id/monitor_btn_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/monitor_btn_open"
@@ -16,6 +21,7 @@
         android:textColor="@color/white"/>
 
     <include
+        android:visibility="gone"
         android:id="@+id/monitor_openview"
         layout="@layout/window_monitor_open"/>
 </FrameLayout>
