@@ -4,11 +4,6 @@
              android:layout_height="match_parent"
              android:orientation="vertical">
 
-    <Button
-        android:text="close"
-        android:id="@+id/monitor_btn_close"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/monitor_btn_open"
