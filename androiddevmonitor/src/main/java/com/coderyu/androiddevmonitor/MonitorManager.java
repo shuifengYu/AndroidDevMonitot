@@ -1,10 +1,7 @@
-package com.coderyu.androiddevmonitor.manager;
+package com.coderyu.androiddevmonitor;
 
 import android.content.Context;
 
-import com.coderyu.androiddevmonitor.IMonitor;
-import com.coderyu.androiddevmonitor.MonitorType;
-import com.coderyu.androiddevmonitor.MonitorWindow;
 import com.coderyu.androiddevmonitor.logmonitor.LogMonitor;
 
 import java.util.ArrayList;
@@ -17,38 +14,39 @@ public class MonitorManager {
 
     private int mMonitorIndex = 0;
 
-    private ArrayList<IMonitor> mMonitors;
+    private ArrayList<Monitor> mMonitors;
     private static MonitorManager sInstance;
 
-    private MonitorManager(int monitorType) {
-        addMonitors(monitorType);
+    private MonitorManager(Context context, int monitorType) {
+        addMonitors(context,monitorType);
     }
 
     public static void init(Context context, int monitorType) {
         MonitorWindow.init(context);
-        sInstance = new MonitorManager(monitorType);
+        sInstance = new MonitorManager(context,monitorType);
     }
+
 
     public static MonitorManager getInstance() {
         return sInstance;
     }
 
-    private void addMonitors(int monitorType) {
+    private void addMonitors(Context context, int monitorType) {
         mMonitors = new ArrayList<>();
         if ((monitorType & MonitorType.LOG) != 0) {
-            mMonitors.add(new LogMonitor());
+            mMonitors.add(LogMonitor.create(context));
         }
     }
 
     public void startMonitor() {
-        currMonitor().show();
+        MonitorWindow.getInstance().show(currMonitor());
     }
 
-    private IMonitor currMonitor() {
+    private Monitor currMonitor() {
         return mMonitors.get(mMonitorIndex);
     }
 
     public void stopMonitor() {
-
+        MonitorWindow.getInstance().stop();
     }
 }

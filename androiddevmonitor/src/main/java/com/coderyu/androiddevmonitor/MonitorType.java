@@ -5,5 +5,5 @@ package com.coderyu.androiddevmonitor;
  */
 
 public class MonitorType {
-    public static final int LOG = 1;
+    public static final int LOG = 0x00000001;
 }

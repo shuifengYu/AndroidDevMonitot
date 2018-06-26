@@ -3,7 +3,6 @@ package com.coderyu.androiddevmonitor;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -11,45 +10,52 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
-import com.coderyu.androiddevmonitor.manager.MonitorManager;
-
 /**
  * Created by coder_yu on 18/6/24.
  */
 
 public class MonitorWindow {
     private static Context mContext;
+    private static MonitorWindow sInstance;
 
     /**
      * 按下的时间戳
      */
-    private static long mDownTime;
-    private static int CLICK_DURATION = 300;
-    private static float lastX;
-    private static float lastY;
-    private static int lastRawX;
-    private static int lastRawY;
-    private static int firstX;
-    private static int firstY;
-    private static int maxOffsetX;
-    private static int maxOffsetY;
-    private static long lastTimeDown;
-    private static int mLastL;
-    private static int mLastT;
-    private static int minOffsetX;
-    private static int minOffsetY;
-    private static int mLastR;
-    private static int mLastB;
+    private int CLICK_DURATION = 300;
+    private int lastRawX;
+    private int lastRawY;
+    private int firstX;
+    private int firstY;
+    private int maxOffsetX;
+    private int maxOffsetY;
+    private long lastTimeDown;
+    private int mLastL;
+    private int mLastT;
+    private int mLastR;
+    private int mLastB;
 
-    public static void init(Context context) {
-        mContext = context;
-        WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+    WindowManager mWindowManager;
+    ViewGroup mRootView;
+
+    private MonitorWindow(Context context) {
+        mContext = context.getApplicationContext();
+        mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        mRootView = rootView(mContext);
         Point point = new Point();
-        windowManager.getDefaultDisplay().getSize(point);
-        windowManager.addView(rootView(mContext), params(point));
+        mWindowManager.getDefaultDisplay().getSize(point);
+        mWindowManager.addView(mRootView, params(point));
     }
 
-    private static ViewGroup.LayoutParams params(Point point) {
+    public static void init(Context context) {
+        if (sInstance != null) {
+        }
+        if (context == null) {
+            throw new RuntimeException("Context can not be null!!!");
+        }
+        sInstance = new MonitorWindow(context);
+    }
+
+    private ViewGroup.LayoutParams params(Point point) {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         params.width = point.x;
         params.height = point.y - 500;
@@ -61,8 +67,8 @@ public class MonitorWindow {
         return params;
     }
 
-    private static View rootView(Context context) {
-        final View rootView = LayoutInflater.from(context).inflate(R.layout.window_monitor, null);
+    private ViewGroup rootView(Context context) {
+        final ViewGroup rootView = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.window_monitor, null);
 
         final View btnOpen = rootView.findViewById(R.id.monitor_btn_open);
         View tvClose = rootView.findViewById(R.id.monitor_tv_close);
@@ -90,7 +96,7 @@ public class MonitorWindow {
                         deltaX = Math.abs(lastRawX - firstX);
                         deltaY = Math.abs(lastRawY - firstY);
                         float duringTime = System.currentTimeMillis() - lastTimeDown;
-                        if (deltaX < 5 && deltaY < 5 && duringTime < 500) {
+                        if (deltaX < 5 && deltaY < 5 && duringTime < CLICK_DURATION) {
                             btnOpen.setVisibility(View.GONE);
                             openView.setVisibility(View.VISIBLE);
                             MonitorManager.getInstance().startMonitor();
@@ -122,17 +128,13 @@ public class MonitorWindow {
         return rootView;
     }
 
-    private static void moveLayout(View v, int deltaX, int deltaY) {
+    private void moveLayout(View v, int deltaX, int deltaY) {
         mLastL = v.getLeft() + deltaX;
         mLastT = v.getTop() + deltaY;
-        if (mLastL < minOffsetX) {
-            mLastL = minOffsetX;
-        } else if (mLastL > maxOffsetX) {
+        if (mLastL > maxOffsetX) {
             mLastL = maxOffsetX;
         }
-        if (mLastT < minOffsetY) {
-            mLastT = minOffsetY;
-        } else if (mLastT > maxOffsetY) {
+        if (mLastT > maxOffsetY) {
             mLastT = maxOffsetY;
         }
         mLastR = mLastL + v.getWidth();
@@ -140,8 +142,16 @@ public class MonitorWindow {
         v.layout(mLastL, mLastT, mLastR, mLastB);
     }
 
-    private static float delta() {
-        return SystemClock.currentThreadTimeMillis() - mDownTime;
+
+    public void show(Monitor monitor) {
+        monitor.show(mRootView);
     }
 
+    public static MonitorWindow getInstance() {
+        return sInstance;
+    }
+
+    public void stop() {
+
+    }
 }
