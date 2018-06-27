@@ -18,12 +18,12 @@ public class MonitorManager {
     private static MonitorManager sInstance;
 
     private MonitorManager(Context context, int monitorType) {
-        addMonitors(context,monitorType);
+        addMonitors(context, monitorType);
     }
 
     public static void init(Context context, int monitorType) {
         MonitorWindow.init(context);
-        sInstance = new MonitorManager(context,monitorType);
+        sInstance = new MonitorManager(context, monitorType);
     }
 
 
@@ -38,15 +38,8 @@ public class MonitorManager {
         }
     }
 
-    public void startMonitor() {
-        MonitorWindow.getInstance().show(currMonitor());
-    }
-
-    private Monitor currMonitor() {
+    public Monitor currMonitor() {
         return mMonitors.get(mMonitorIndex);
     }
 
-    public void stopMonitor() {
-        MonitorWindow.getInstance().stop();
-    }
 }

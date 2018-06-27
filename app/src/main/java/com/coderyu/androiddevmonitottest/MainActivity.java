@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
                         LogMonitor.e(TAG, "哈哈，我在测试日志显示工具，当期是" + sIndex);
                     }
                     try {
-                        Thread.sleep(50);
+                        Thread.sleep(500);
                         sIndex++;
                     } catch (InterruptedException e) {
                         e.printStackTrace();

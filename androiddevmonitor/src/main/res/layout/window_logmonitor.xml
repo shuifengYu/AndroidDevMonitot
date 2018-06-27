@@ -15,7 +15,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="ALL" />
+            android:text="ALL"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/logmonitor_tv_d"
@@ -23,7 +24,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="D" />
+            android:text="D"
+            android:textColor="@color/DEBUG" />
 
         <TextView
             android:id="@+id/logmonitor_tv_i"
@@ -31,7 +33,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="I" />
+            android:text="I"
+            android:textColor="@color/INFO" />
 
         <TextView
             android:id="@+id/logmonitor_tv_w"
@@ -39,7 +42,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="W" />
+            android:text="W"
+            android:textColor="@color/WARNGIN" />
 
         <TextView
             android:id="@+id/logmonitor_tv_e"
@@ -47,7 +51,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
-            android:text="E" />
+            android:text="E"
+            android:textColor="@color/ERROR" />
     </LinearLayout>
 
     <ListView

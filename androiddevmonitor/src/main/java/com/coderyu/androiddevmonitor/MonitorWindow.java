@@ -3,12 +3,16 @@ package com.coderyu.androiddevmonitor;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+
+import com.coderyu.androiddevmonitor.utils.DeviceUtil;
+import com.coderyu.androiddevmonitor.utils.ViewUtil;
 
 /**
  * Created by coder_yu on 18/6/24.
@@ -26,17 +30,12 @@ public class MonitorWindow {
     private int lastRawY;
     private int firstX;
     private int firstY;
-    private int maxOffsetX;
-    private int maxOffsetY;
     private long lastTimeDown;
-    private int mLastL;
-    private int mLastT;
-    private int mLastR;
-    private int mLastB;
 
     WindowManager mWindowManager;
     ViewGroup mRootView;
     private ViewGroup mMonitorContainer;
+    private WindowManager.LayoutParams mParams;
 
     private MonitorWindow(Context context) {
         mContext = context.getApplicationContext();
@@ -44,7 +43,7 @@ public class MonitorWindow {
         mRootView = rootView(mContext);
         Point point = new Point();
         mWindowManager.getDefaultDisplay().getSize(point);
-        mWindowManager.addView(mRootView, params(point));
+        mWindowManager.addView(mRootView, floatParams());
     }
 
     public static void init(Context context) {
@@ -56,27 +55,43 @@ public class MonitorWindow {
         sInstance = new MonitorWindow(context);
     }
 
-    private ViewGroup.LayoutParams params(Point point) {
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-        params.width = point.x;
-        params.height = point.y - 500;
-        params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        params.type = WindowManager.LayoutParams.TYPE_PHONE;
-        params.format = PixelFormat.TRANSLUCENT;
-        params.gravity = Gravity.BOTTOM;
 
-        return params;
+    private ViewGroup.LayoutParams floatParams() {
+        mParams = new WindowManager.LayoutParams();
+        mParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        mParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        mParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        mParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+        mParams.format = PixelFormat.TRANSLUCENT;
+        mParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
+        return mParams;
     }
 
     private ViewGroup rootView(Context context) {
         final ViewGroup rootView = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.window_monitor, null);
 
         final View btnOpen = rootView.findViewById(R.id.monitor_btn_open);
+        final View llTopBar = rootView.findViewById(R.id.monitor_line_topbar);
         View tvClose = rootView.findViewById(R.id.monitor_tv_close);
 
         final View openView = rootView.findViewById(R.id.monitor_openview);
         mMonitorContainer = (ViewGroup) openView.findViewById(R.id.monitor_main);
-        btnOpen.setOnTouchListener(new View.OnTouchListener() {
+        View.OnTouchListener touchListener = createTouchListener();
+        btnOpen.setOnTouchListener(touchListener);
+        llTopBar.setOnTouchListener(touchListener);
+
+        tvClose.setOnClickListener(new View.OnClickListener() {
+                                       @Override
+                                       public void onClick(View v) {
+                                           closeMonitor();
+                                       }
+                                   }
+        );
+        return rootView;
+    }
+
+    private View.OnTouchListener createTouchListener() {
+        return new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
 
@@ -86,28 +101,28 @@ public class MonitorWindow {
                 float deltaX, deltaY;
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
-                        lastTimeDown = System.currentTimeMillis();
-                        lastRawX = rawX;
-                        lastRawY = rawY;
                         firstX = rawX;
                         firstY = rawY;
-                        maxOffsetX = ((ViewGroup) v.getParent()).getWidth() - v.getWidth();
-                        maxOffsetY = ((ViewGroup) v.getParent()).getHeight() - v.getHeight();
+                        lastTimeDown = System.currentTimeMillis();
                         break;
                     case MotionEvent.ACTION_UP:
                         deltaX = Math.abs(lastRawX - firstX);
                         deltaY = Math.abs(lastRawY - firstY);
                         float duringTime = System.currentTimeMillis() - lastTimeDown;
                         if (deltaX < 5 && deltaY < 5 && duringTime < CLICK_DURATION) {
-                            btnOpen.setVisibility(View.GONE);
-                            openView.setVisibility(View.VISIBLE);
-                            MonitorManager.getInstance().startMonitor();
+                            openMonitor();
                         }
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        deltaX = rawX - lastRawX;
-                        deltaY = rawY - lastRawY;
-                        moveLayout(v, (int) deltaX, (int) deltaY);
+                        int [] location = new int[2];
+                        mRootView.getLocationOnScreen(location);
+                        float x = event.getX();
+                        float y = event.getY();
+                        Log.e("aaaaa  a",mParams.x+","+mParams.y+","+x+","+y);
+                        mParams.x =  DeviceUtil.getScreenWidth(mContext) -rawX- mRootView.getWidth() /2;
+                        mParams.y = DeviceUtil.getScreenHeight(mContext) - rawY -mRootView.getHeight()+ 40;
+                        Log.e("aaaaa  b",mParams.x+","+mParams.y);
+                        mWindowManager.updateViewLayout(mRootView, mParams);
                         lastRawX = rawX;
                         lastRawY = rawY;
                         break;
@@ -115,37 +130,17 @@ public class MonitorWindow {
 
                 return true;
             }
-        });
-
-
-        tvClose.setOnClickListener(new View.OnClickListener() {
-                                       @Override
-                                       public void onClick(View v) {
-                                           openView.setVisibility(View.GONE);
-                                           btnOpen.setVisibility(View.VISIBLE);
-                                           MonitorManager.getInstance().stopMonitor();
-                                       }
-                                   }
-        );
-        return rootView;
+        };
     }
 
-    private void moveLayout(View v, int deltaX, int deltaY) {
-        mLastL = v.getLeft() + deltaX;
-        mLastT = v.getTop() + deltaY;
-        if (mLastL > maxOffsetX) {
-            mLastL = maxOffsetX;
-        }
-        if (mLastT > maxOffsetY) {
-            mLastT = maxOffsetY;
-        }
-        mLastR = mLastL + v.getWidth();
-        mLastB = mLastT + v.getHeight();
-        v.layout(mLastL, mLastT, mLastR, mLastB);
+    private void openMonitor() {
+        ViewUtil.gone(mRootView, R.id.monitor_btn_open);
+        ViewUtil.visible(mRootView, R.id.monitor_openview);
+        showMonitor(MonitorManager.getInstance().currMonitor());
     }
 
 
-    public void show(Monitor monitor) {
+    public void showMonitor(Monitor monitor) {
         monitor.show(mMonitorContainer);
     }
 
@@ -153,7 +148,9 @@ public class MonitorWindow {
         return sInstance;
     }
 
-    public void stop() {
-
+    public void closeMonitor() {
+        ViewUtil.visible(mRootView, R.id.monitor_btn_open);
+        ViewUtil.gone(mRootView, R.id.monitor_openview);
+        mMonitorContainer.removeAllViews();
     }
 }

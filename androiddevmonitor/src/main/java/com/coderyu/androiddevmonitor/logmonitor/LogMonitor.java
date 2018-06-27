@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -17,9 +18,12 @@ import com.coderyu.androiddevmonitor.Monitor;
 import com.coderyu.androiddevmonitor.R;
 import com.coderyu.androiddevmonitor.adapter.CommonAdapter;
 import com.coderyu.androiddevmonitor.adapter.ViewHolder;
+import com.coderyu.androiddevmonitor.utils.DeviceUtil;
 
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 
 /**
  * Created by coder_yu on 18/6/24.
@@ -28,15 +32,17 @@ import java.util.Date;
 public class LogMonitor extends Monitor {
 
     private static final String MONITOR_NAME = "LOG";
-    private static final int D = Color.parseColor("#ff1122");
-    private static final int I = Color.parseColor("#ff11FF");
-    private static final int W = Color.parseColor("#111122");
-    private static final int E = Color.parseColor("#ff4422");
+    private static final int D = Color.parseColor("#4fb937");
+    private static final int I = Color.parseColor("#3257a3");
+    private static final int W = Color.parseColor("#743a2d");
+    private static final int E = Color.parseColor("#fc1a26");
+    private static final int ALL = 0;
     private static final int MESSAGE_NOTIFY_ADAPTER = 1;
 
     private static LogMonitor sInstance;
-    private int mCurrColor = 0;
+    private int mCurrColor = ALL;
     private LogQueue mLogQueue;
+    private LogQueue mShowQueue;
     private BaseAdapter mAdapter;
 
     private Handler mHandler;
@@ -67,6 +73,7 @@ public class LogMonitor extends Monitor {
     @Override
     protected View view(final Context context) {
         View rootView = LayoutInflater.from(context).inflate(R.layout.window_logmonitor, null);
+        rootView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DeviceUtil.getScreenHeight(context) / 2));
         View vD = rootView.findViewById(R.id.logmonitor_tv_d);
         View vI = rootView.findViewById(R.id.logmonitor_tv_i);
         View vW = rootView.findViewById(R.id.logmonitor_tv_w);
@@ -86,7 +93,7 @@ public class LogMonitor extends Monitor {
                 } else if (i == R.id.logmonitor_tv_e) {
                     showColor(E);
                 } else if (i == R.id.logmonitor_tv_all) {
-                    showColor(0);
+                    showColor(ALL);
                 }
             }
         };
@@ -103,24 +110,41 @@ public class LogMonitor extends Monitor {
 
     private ListAdapter initAdapter() {
         mLogQueue = new LogQueue();
-        mAdapter = new CommonAdapter<LogQueue.LogQueueItem>(mContext, mLogQueue, R.layout.item_logmonitor) {
+        mShowQueue = new LogQueue();
+        mAdapter = new CommonAdapter<LogQueue.LogQueueItem>(mContext, mShowQueue, R.layout.item_logmonitor) {
             @Override
             public void convert(ViewHolder helper, LogQueue.LogQueueItem item, int position) {
                 TextView tvContent = helper.getView(R.id.item_logmonitor_tv_content);
-                if (mCurrColor != 0 && item.getColor() != mCurrColor) {
-                    tvContent.setVisibility(View.GONE);
-                } else {
-                    tvContent.setVisibility(View.VISIBLE);
-                    tvContent.setText(item.getMessage());
-                    tvContent.setTextColor(item.getColor());
-                }
+                tvContent.setText(item.getMessage());
+                tvContent.setTextColor(item.getColor());
             }
         };
         return mAdapter;
     }
 
     private void showColor(int color) {
+        if (mCurrColor == color) {
+            return;
+        }
         mCurrColor = color;
+        mShowQueue.clear();
+        mShowQueue.addAll(getLosByColor(color));
+    }
+
+    private Collection<? extends LogQueue.LogQueueItem> getLosByColor(int color) {
+        if (color == ALL) {
+            return mLogQueue;
+        }
+        Iterator<LogQueue.LogQueueItem> iterator = mLogQueue.iterator();
+        LogQueue colorQueue = new LogQueue();
+        while (iterator.hasNext()) {
+            LogQueue.LogQueueItem it = iterator.next();
+            if (it.getColor() != color) {
+                continue;
+            }
+            colorQueue.add(it);
+        }
+        return colorQueue;
     }
 
     public static void d(String TAG, String message) {
@@ -144,10 +168,17 @@ public class LogMonitor extends Monitor {
             return;
         }
 
-        sInstance.mLogQueue.add(new LogQueue.LogQueueItem(color, sInstance.getLogMessage(TAG, message)));
-        // TODO: 18/6/26 加个缓存时间，防止太快刷新
-        sInstance.notifyDateSetChanged();
+        LogQueue.LogQueueItem logQueueItem = new LogQueue.LogQueueItem(color, sInstance.getLogMessage(TAG, message));
+        sInstance.mLogQueue.add(logQueueItem);
+        if (isShowingColor(logQueueItem.getColor())) {
+            sInstance.mShowQueue.add(logQueueItem);
+            // TODO: 18/6/26 加个缓存时间，防止太快刷新
+            sInstance.notifyDateSetChanged();
+        }
+    }
 
+    private static boolean isShowingColor(int color) {
+        return sInstance.mCurrColor == ALL || sInstance.mCurrColor == color;
     }
 
     private void notifyDateSetChanged() {
