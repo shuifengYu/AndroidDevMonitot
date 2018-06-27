@@ -3,6 +3,8 @@ package com.coderyu.androiddevmonitor.logmonitor;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.BaseAdapter;
@@ -30,6 +32,8 @@ public class LogMonitor extends Monitor {
     private static final int I = Color.parseColor("#ff11FF");
     private static final int W = Color.parseColor("#111122");
     private static final int E = Color.parseColor("#ff4422");
+    private static final int MESSAGE_NOTIFY_ADAPTER = 1;
+
     private static LogMonitor sInstance;
     private int mCurrColor = 0;
     private LogQueue mLogQueue;
@@ -46,8 +50,18 @@ public class LogMonitor extends Monitor {
     }
 
     private LogMonitor(Context context) {
-        super(context,MONITOR_NAME);
-        mHandler = new Handler();
+        super(context, MONITOR_NAME);
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case MESSAGE_NOTIFY_ADAPTER:
+                        mAdapter.notifyDataSetChanged();
+                        break;
+                    default:
+                }
+            }
+        };
     }
 
     @Override
@@ -61,7 +75,7 @@ public class LogMonitor extends Monitor {
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context,"v:"+v.getId(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "v:" + v.getId(), Toast.LENGTH_SHORT).show();
                 int i = v.getId();
                 if (i == R.id.logmonitor_tv_d) {
                     showColor(D);
@@ -96,6 +110,7 @@ public class LogMonitor extends Monitor {
                 if (mCurrColor != 0 && item.getColor() != mCurrColor) {
                     tvContent.setVisibility(View.GONE);
                 } else {
+                    tvContent.setVisibility(View.VISIBLE);
                     tvContent.setText(item.getMessage());
                     tvContent.setTextColor(item.getColor());
                 }
@@ -136,13 +151,11 @@ public class LogMonitor extends Monitor {
     }
 
     private void notifyDateSetChanged() {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mAdapter.notifyDataSetChanged();
-            }
-        });
-
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            mAdapter.notifyDataSetChanged();
+        } else {
+            mHandler.sendEmptyMessage(MESSAGE_NOTIFY_ADAPTER);
+        }
     }
 
     private static String getLogMessage(String TAG, String message) {

@@ -36,6 +36,7 @@ public class MonitorWindow {
 
     WindowManager mWindowManager;
     ViewGroup mRootView;
+    private ViewGroup mMonitorContainer;
 
     private MonitorWindow(Context context) {
         mContext = context.getApplicationContext();
@@ -62,7 +63,7 @@ public class MonitorWindow {
         params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
         params.type = WindowManager.LayoutParams.TYPE_PHONE;
         params.format = PixelFormat.TRANSLUCENT;
-        params.gravity = Gravity.TOP;
+        params.gravity = Gravity.BOTTOM;
 
         return params;
     }
@@ -72,8 +73,9 @@ public class MonitorWindow {
 
         final View btnOpen = rootView.findViewById(R.id.monitor_btn_open);
         View tvClose = rootView.findViewById(R.id.monitor_tv_close);
-        final View openView = rootView.findViewById(R.id.monitor_openview);
 
+        final View openView = rootView.findViewById(R.id.monitor_openview);
+        mMonitorContainer = (ViewGroup) openView.findViewById(R.id.monitor_main);
         btnOpen.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -144,7 +146,7 @@ public class MonitorWindow {
 
 
     public void show(Monitor monitor) {
-        monitor.show(mRootView);
+        monitor.show(mMonitorContainer);
     }
 
     public static MonitorWindow getInstance() {

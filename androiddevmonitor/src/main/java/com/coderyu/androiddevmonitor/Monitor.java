@@ -14,7 +14,6 @@ public abstract class Monitor implements IMonitor {
     private View mView;
 
 
-
     public Monitor(Context context, String name) {
         this.mContext = context;
         this.mName = name;
@@ -36,6 +35,7 @@ public abstract class Monitor implements IMonitor {
         if (rootView == null) {
             return;
         }
+        rootView.removeAllViews();
         rootView.addView(this.mView);
     }
 
